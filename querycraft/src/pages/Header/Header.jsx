@@ -36,12 +36,15 @@ const Header = () => {
           </a>
         </li>
         <li><Link to='/myCourses'>My Course</Link></li>
+        <li><Link to='/myevents'>My Events</Link></li>
+        
         <li><Link onClick={handleLogOut}>Logout</Link></li>
       </ul>
     </div>
     }
     <li><NavLink to="/Heroregister">Register </NavLink></li>
     <li><NavLink to="/login">Login</NavLink></li>
+
 
   </>
   return (

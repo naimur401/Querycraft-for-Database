@@ -16,6 +16,7 @@ import Students from "../pages/Students/Student";
 import AddStudent from "../pages/AddStudent/AddStudent";
 import Login from "../pages/Login/Login";
 import MyCourses from "../pages/MyCourses/MyCourses";
+import MyEvents from "../pages/MyEvents/MyEvents";
 
    export const router = createBrowserRouter([
     {
@@ -62,7 +63,12 @@ import MyCourses from "../pages/MyCourses/MyCourses";
         {
           path: '/myCourses',
           element: <MyCourses/>
+        },
+        {
+          path:'/myevents',
+          element:<MyEvents></MyEvents>
         }
+      
       ]
     },
   ]);
