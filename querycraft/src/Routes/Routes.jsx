@@ -17,16 +17,17 @@ import AddStudent from "../pages/AddStudent/AddStudent";
 import Login from "../pages/Login/Login";
 import MyCourses from "../pages/MyCourses/MyCourses";
 import MyEvents from "../pages/MyEvents/MyEvents";
+import Home from "../pages/Home/Home";
 
    export const router = createBrowserRouter([
     {
       path: "/",
       element: <Main></Main>,
       children:[
-        // {
-        //     path:'/',
-        //     element:<Home></Home>
-        // },
+        {
+            path:'/',
+            element: <Home/>
+        },
       
         {
           path:'/students',

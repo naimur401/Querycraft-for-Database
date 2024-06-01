@@ -16,21 +16,24 @@ const Events = () => {
 
   useEffect(() => {
     if (user?.email) {
-      const url = `http://localhost:5000/my-events?email=${user?.email}`;
-      fetch(url)
+      fetch(`http://localhost:5000/myevents?email=${user.email}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
             setMyEvents(data);
           } else {
-            console.error('Invalid data format for my-events:', data);
+            console.error('Error: my-events is not an array', data);
+            setMyEvents([]);
           }
         })
-        .catch(error => console.error('Error fetching my-events:', error));
+        .catch(error => {
+          console.error('Error fetching my-events:', error);
+          setMyEvents([]);
+        });
     }
   }, [user]);
 
-  const joinEvent = (event_id) => {
+  const joinEvent = (event_id, event_name, event_date, description) => {
     if (!user) {
       Swal.fire({
         icon: 'error',
@@ -40,21 +43,24 @@ const Events = () => {
       return;
     }
 
-    if (myEvents.some(event => event.event_id === event_id)) {
+    if (Array.isArray(myEvents) && myEvents.some(event => event.event_id === event_id)) {
       Swal.fire({
         icon: 'info',
         title: 'Info',
-        text: 'You are already joined this event!',
+        text: 'You have already joined this event!',
       });
       return;
     }
 
     const userEvent = {
       email: user.email,
-      event_id
+      event_id,
+      event_name,
+      event_date: new Date(event_date).toISOString().slice(0, 10),
+      description,
     };
 
-    fetch('http://localhost:5000/join-events', {
+    fetch('http://localhost:5000/myevents', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,19 +89,22 @@ const Events = () => {
 
   return (
     <div className='w-10/12 mx-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-10 mt-10'>
-      {
-        events?.map(event => (
-          <div key={event.event_id} className="card w-96 bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title">Event Id: {event?.event_id}</h2>
-              <h2 className="card-title">Event Name: {event?.event_name}</h2>
-              <h2 className="card-title">Event Date: {event?.event_date}</h2>
-              <p><span>Description: </span>{event?.description}</p>
-            </div>
-            <button onClick={() => joinEvent(event?.event_id)} className='btn btn-outline m-4'>Join Now</button>
+      {events?.map(event => (
+        <div key={event.event_id} className="card w-96 bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Event Id: {event?.event_id}</h2>
+            <h2 className="card-title">Event Name: {event?.event_name}</h2>
+            <p className="text-xl"><span>Date: </span>{new Date(event.event_date).toLocaleDateString()}</p>
+            <p><span>Description: </span>{event?.description}</p>
           </div>
-        ))
-      }
+          <button
+            onClick={() => joinEvent(event?.event_id, event?.event_name, event?.event_date, event?.description)}
+            className='btn btn-outline m-4'
+          >
+            Join Now
+          </button>
+        </div>
+      ))}
     </div>
   );
 };

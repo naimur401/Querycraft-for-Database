@@ -1,17 +1,19 @@
 import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "../../Provider/AuthProvider";
 import Swal from "sweetalert2";
+import { AuthContext } from "../../Provider/AuthProvider";
 
 const MyEvents = () => {
     const { user } = useContext(AuthContext);
     const [myEvents, setMyEvents] = useState([]);
-    console.log(myEvents);
-    const url = `http://localhost:5000/my-events?email=${user?.email}`
-    useEffect(()=>{
+
+    const url = `http://localhost:5000/myevents?email=${user?.email}`;
+
+    useEffect(() => {
         fetch(url)
-        .then(res => res.json())
-        .then(data => setMyEvents(data))
-    }, [url])
+            .then(res => res.json())
+            .then(data => setMyEvents(data))
+            .catch(error => console.error('Error fetching events:', error));
+    }, [url]);
 
     const deleteEvent = (id) => {
         console.log(id);
@@ -25,49 +27,59 @@ const MyEvents = () => {
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                fetch(`http://localhost:5000/my-events?email=${user?.email}&eventId=${id}`, {
+                fetch(`http://localhost:5000/myevents?email=${user?.email}&event_id=${id}`, {
                     method: 'DELETE'
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log(data);
-                        if (data.deletedCount === true) {
-                            Swal.fire(
-                                'Deleted!',
-                                'Your Event has been deleted.',
-                                'success'
-                            )
-                            const remaining = myEvents.filter(e => e.event_id !== id);
-                            setMyEvents(remaining);
-                        }
-                    })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.deletedCount === true) {
+                        Swal.fire(
+                            'Deleted!',
+                            'Your Event has been deleted.',
+                            'success'
+                        );
+                        const remainingEvents = myEvents.filter(event => event.event_id !== id);
+                        setMyEvents(remainingEvents);
+                    }
+                })
+                .catch(error => console.error('Error deleting event:', error));
             }
-        })
-    }
+        });
+    };
+
     return (
         <div>
             <div className="overflow-x-auto w-11/12 mx-auto">
                 <table className="table table-zebra">
-                    {/* head */}
+                    {/* Table head */}
                     <thead>
                         <tr>
                             <th>Event ID</th>
                             <th>Event Name</th>
-                            <th>Event Date</th>
+                            <th>Date</th>
                             <th>Description</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {   
-                            myEvents.map(e => <tr key={e.event_id}>
-                                <th>{e?.event_id}</th>
-                                <td>{e?.event_name}</td>
-                                <td>{e?.event_date}</td>
-                                <td>{e?.description}</td>
-                                <td><button onClick={() => deleteEvent(e.event_id)} className="bg-blue-600 text-white p-2 rounded-lg">Delete</button></td>
-                            </tr>)
-                        }
+                        {
+                        myEvents.length>0 ?
+                        myEvents.map((event,idx) => (
+                            <tr key={idx}>
+                                <td>{event.event_id}</td>
+                                <td>{event.event_name}</td>
+                                <td>{new Date(event.event_date).toLocaleDateString()}</td>
+                                <td>{event.description}</td>
+                                <td>
+                                    <button 
+                                        onClick={() => deleteEvent(event.event_id)} 
+                                        className="bg-blue-600 text-white p-2 rounded-lg"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        )): <p className="text-center w-full text-2xl text-blue-500 font-semibold">No Event</p>}
                     </tbody>
                 </table>
             </div>

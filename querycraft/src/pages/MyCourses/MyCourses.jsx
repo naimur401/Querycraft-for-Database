@@ -61,14 +61,15 @@ const MyCourses = () => {
                     </thead>
                     <tbody>
                         {   
-                            myCourses.map(c => <tr key={c.course_id}>
+                            myCourses.length>0 ?
+                            myCourses?.map(c => <tr key={c?.course_id}>
                                 <th>{c?.course_id}</th>
                                 <td>{c?.course_code}</td>
                                 <td>{c?.title}</td>
                                 <td>{c?.description}</td>
                                 <td>{c?.prerequisites}</td>
-                                <td><button onClick={()=>deleteCourse(c.course_id)} className="bg-blue-600 text-white p-2 rounded-lg">Delete</button></td>
-                            </tr>)
+                                <td><button onClick={()=>deleteCourse(c?.course_id)} className="bg-blue-600 text-white p-2 rounded-lg">Delete</button></td>
+                            </tr>): <p>No courses selected</p>
                         }
                     </tbody>
                 </table>

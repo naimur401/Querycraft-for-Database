@@ -94,7 +94,70 @@ app.get("/events", (req, res) => {
         return res.json(data);
     });
 });
+app.post("/myevents", (req, res) => {
+    console.log("Received data:", req.body); // Log the request body
+    const q = "INSERT INTO myevents SET ?";
+    const values = req.body;
+    db.query(q, values, (err, data) => {
+        if (err) {
+            console.error('Error adding enrollment:', err); // Log any errors
+            return res.status(500).json(err); // Return the error response
+        }
+        return res.json({
+            dataInserted: true,
+            message: "event added successfully."
+        });
+    });
+});
+app.get("/myevents", (req, res) => {
+    const { email } = req.query;
 
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const sql = `
+        SELECT event_id, event_name, event_date, description
+        FROM myevents
+        WHERE email = ?`;
+
+    db.query(sql, [email], (error, data) => {
+        if (error) {
+            console.error('Error retrieving courses:', error); // Log any errors
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+
+        if (data.length === 0) {
+            return res.status(404).json({ message: 'No courses found for this email' });
+        }
+        console.log(data);
+        return res.json(data);
+    });
+});
+
+app.delete("/myevents", (req, res) => {
+    const { email, event_id } = req.query;
+
+    if (!email || !event_id) {
+        return res.status(400).json({ error: 'Email and event_id are required' });
+    }
+
+    const deleteQuery = "DELETE FROM myevents WHERE email = ? AND event_id = ?";
+    const values = [email, event_id];
+
+    db.query(deleteQuery, values, (error, result) => {
+        if (error) {
+            console.error('Error deleting events:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'event not found' });
+        }
+
+        return res.json({ message: 'event deleted successfully', deletedCount: true });
+    });
+});
 app.get("/notifications", (req, res) => {
     const sql = "SELECT * FROM notifications";
     db.query(sql, (error, data) => {
@@ -102,7 +165,17 @@ app.get("/notifications", (req, res) => {
         return res.json(data);
     });
 });
+app.delete('/notifications/:notification_id', (req, res) => {
+    const notificationId = req.params.notification_id;
+    const query = 'DELETE FROM notifications WHERE notification_id = ?';
 
+    db.query(query, [notificationId], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Error deleting notification' });
+        }
+        res.json({ deleted: true });
+    });
+});
 // New endpoint to get courses by email
 app.get("/my-courses", (req, res) => {
     const { email } = req.query;
@@ -154,6 +227,57 @@ app.delete("/enrollments", (req, res) => {
         return res.json({ message: 'Enrollment deleted successfully', deletedCount: true });
     });
 });
+// Endpoint to get user-specific notifications
+app.get("/notifications", (req, res) => {
+    const { userId } = req.query;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const sql = `
+        SELECT notification_id, user_id, message, timestamp, status
+        FROM notifications
+        WHERE user_id = ?`;
+
+    db.query(sql, [userId], (error, data) => {
+        if (error) {
+            console.error('Error retrieving notifications:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+
+        return res.json(data);
+    });
+});
+// Endpoint to update notification status
+app.patch("/notifications/:notificationId", (req, res) => {
+    const { notificationId } = req.params;
+    const { status } = req.body;
+
+    if (!notificationId || !status) {
+        return res.status(400).json({ error: 'Notification ID and status are required' });
+    }
+
+    const updateQuery = "UPDATE notifications SET status = ? WHERE notification_id = ?";
+    const values = [status, notificationId];
+
+    db.query(updateQuery, values, (error, result) => {
+        if (error) {
+            console.error('Error updating notification status:', error);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        return res.json({ message: 'Notification status updated successfully', updated: true });
+    });
+});
+
+
+
+
 
 app.get("/", (req, res) => {
     res.send("Hello");
